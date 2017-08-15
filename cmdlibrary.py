@@ -75,15 +75,18 @@ class Start(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, args = None):
+    def state0(user, msg=None, args=None):
 
         '''
-        The customized (given user) state 0 function for execution
+        The customized (given user) state 0 function for execution. Return the
+        state increment.
         '''
 
         Start.bot.sendMessage(user, 'Hi, NAME! cycbikes helps you to find the \
             bikes station to pick up or drop off. Send /help for more\
             options')
+
+        return 1
 
 #-------------------------------------------------------------------------------
         
@@ -102,14 +105,14 @@ class Start(PgmAbstract):
 #-------------------------------------------------------------------------------        
     
     @staticmethod # Should be inherit
-    def run(user, state, args=None):
+    def run(user, state, msg=None, args=None):
 
         '''
         Execute the function of the program at the given state
         '''
 
-        Start.statefun[state](user, args)
-        state += 1
+        state += Start.statefun[state](user, args)
+        
         if state is len(Start.statefun):
             return 0
         return state
@@ -149,7 +152,7 @@ class Default(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, args = None):
+    def state0(user, msg=None, args=None):
         
         '''
         The customized (given user) state 0 function for execution. The function
@@ -165,6 +168,8 @@ class Default(PgmAbstract):
         markup.add(itembtn2)
         markup.add(itembtn3)
         Default.tb.send_message(user, "default state0", reply_markup=markup)
+
+        return 1
 
 #-------------------------------------------------------------------------------
 
@@ -191,14 +196,17 @@ class Default(PgmAbstract):
  #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state1(user, args = None):
+    def state1(user, msg, args=None):
 
         '''
-        The customized (given user) state 1 function for execution
+        The customized (given user) state 1 function for execution. Return the 
+        state increment.
         '''
 
         # location 
             # pick up or drop off
+
+
 
         # favPick
             # change state and execute "/favP1"
@@ -207,6 +215,8 @@ class Default(PgmAbstract):
             # change state and execute "/favDrop"
 
         Default.bot.sendMessage(user, 'state one execute')
+
+        return 1
 
 #-------------------------------------------------------------------------------    
     
@@ -226,15 +236,14 @@ class Default(PgmAbstract):
 #-------------------------------------------------------------------------------
     
     @staticmethod # Should be inherit
-    def run(user, state, args=None):
+    def run(user, state, msg=None, args=None):
 
         '''
         Execute the function of the program at the given state
         '''
 
-        Default.statefun[state](user, args)
+        state += Default.statefun[state](user, msg, args)
         
-        state += 1
         if state is len(Default.statefun):
             return 0
         return state
@@ -268,7 +277,7 @@ class Help(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, args = None):
+    def state0(user, msg=None, args = None):
 
         '''
         The customized (given user) state 0 function for execution
@@ -284,6 +293,8 @@ class Help(PgmAbstract):
             /favPi : search the ith favorite pick up location.\n\
             /start : greeting!\n\
             /help : commands instructions')
+
+        return 1
 
 #-------------------------------------------------------------------------------
         
@@ -302,14 +313,13 @@ class Help(PgmAbstract):
 #-------------------------------------------------------------------------------        
     
     @staticmethod # Should be inherit
-    def run(user, state, args=None):
+    def run(user, state, msg=None, args=None):
 
         '''
         Execute the function of the program at the given state
         '''
-
-        Help.statefun[state](user, args)
-        state += 1
+        
+        state += Help.statefun[state](user, args)
         if state is len(Help.statefun):
             return 0
         return state

@@ -93,7 +93,7 @@ class CmdAnalyzer:
 
 #-------------------------------------------------------------------------------
 
-    def execute(self, chat_id):
+    def execute(self, chat_id, msg=None):
         
         ''' 
         Execute the chat_id command
@@ -102,7 +102,7 @@ class CmdAnalyzer:
         state_inform = self.user_state.get(chat_id)
         classi = self._command_libarary[state_inform['cmd']]
         state_inform['state_num'] = \
-        classi.run(chat_id, state_inform['state_num'], state_inform['arg'])
+        classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
         state_inform['check_cmd_fun'] = \
         classi.check_cmd[state_inform['state_num']]
 
@@ -110,7 +110,7 @@ class CmdAnalyzer:
             state_inform['cmd'] = '/default'
             classi = self._command_libarary[state_inform['cmd']]
             state_inform['state_num'] = \
-            classi.run(chat_id, state_inform['state_num'], state_inform['arg'])
+            classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
             state_inform['check_cmd_fun'] = \
             classi.check_cmd[state_inform['state_num']]
 
