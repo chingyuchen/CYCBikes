@@ -106,11 +106,11 @@ class CmdAnalyzer:
         state_inform['check_cmd_fun'] = \
         classi.check_cmd[state_inform['state_num']]
 
-        if state_inform['state_num'] is 0: # pgm ends, run the default pgm
+        if state_inform['state_num'] is -1: # pgm ends, run the default pgm
+          
+            classi = self._command_libarary['/default']
             state_inform['cmd'] = '/default'
-            classi = self._command_libarary[state_inform['cmd']]
-            state_inform['state_num'] = \
-            classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
+            state_inform['state_num'] = classi.run(chat_id, 0)
             state_inform['check_cmd_fun'] = \
             classi.check_cmd[state_inform['state_num']]
 

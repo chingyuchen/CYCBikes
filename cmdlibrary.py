@@ -58,13 +58,16 @@ class Start(PgmAbstract):
     bot = None
     tb = None
 
+    GREETING = 0
+    END = -1
+
     statefun = []
     check_cmd = []
 
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def check0(msg):
+    def check_start(msg):
         
         '''
         check if the msg is a valid command for the program at state 0 
@@ -75,7 +78,7 @@ class Start(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, msg=None, args=None):
+    def state_greeting(user, msg=None, args=None):
 
         '''
         The customized (given user) state 0 function for execution. Return the
@@ -86,7 +89,7 @@ class Start(PgmAbstract):
             bikes station to pick up or drop off. Send /help for more\
             options')
 
-        return 1
+        return Start.END
 
 #-------------------------------------------------------------------------------
         
@@ -99,8 +102,9 @@ class Start(PgmAbstract):
 
         Start.bot = bot
         Start.tb = tb
-        Start.statefun = [Start.state0]
-        Start.check_cmd = [Start.check0]
+
+        Start.statefun = [Start.state_greeting]
+        Start.check_cmd = [Start.check_start]
 
 #-------------------------------------------------------------------------------        
     
@@ -108,15 +112,12 @@ class Start(PgmAbstract):
     def run(user, state, msg=None, args=None):
 
         '''
-        Execute the function of the program at the given state
+        Execute the function of the program at the given state and return the 
+        next state
         '''
 
-        state += Start.statefun[state](user, args)
+        return Start.statefun[state](user, args)
         
-        if state is len(Start.statefun):
-            return 0
-        return state
-
 ################################################################################
 
 class Default(PgmAbstract):
@@ -132,16 +133,20 @@ class Default(PgmAbstract):
     bot = None
     tb = None
 
+    REQUEST = 0
+    RESPOND = 1
+    END = -1
+
     statefun = []
     check_cmd = []
 
     fav_dict = {}
-    # {user, {'favP1'=location, 'favP2'=location, 'favP3'=location}}
+    # {user, [[favp1, favp2, favp3] [favd1, favd2, favd3]]}
 
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def check0(msg):
+    def check_start(msg=None):
 
         '''
         check if the msg is a valid command for the program at state 0 
@@ -152,7 +157,7 @@ class Default(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, msg=None, args=None):
+    def state_request(user, msg=None, args=None):
         
         '''
         The customized (given user) state 0 function for execution. The function
@@ -169,12 +174,12 @@ class Default(PgmAbstract):
         markup.add(itembtn3)
         Default.tb.send_message(user, "default state0", reply_markup=markup)
 
-        return 1
+        return Default.RESPOND
 
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def check1(msg):
+    def check_respond(msg):
 
         '''
         check if the msg is a valid command for the program at state 1. If msg 
@@ -196,27 +201,39 @@ class Default(PgmAbstract):
  #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state1(user, msg, args=None):
+    def state_respond(user, msg, args=None):
 
         '''
         The customized (given user) state 1 function for execution. Return the 
         state increment.
         '''
-
-        # location 
-            # pick up or drop off
-
-
-
-        # favPick
-            # change state and execute "/favP1"
-
-        # favDrop 
-            # change state and execute "/favDrop"
-
         Default.bot.sendMessage(user, 'state one execute')
 
-        return 1
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        if content_type is 'location':
+            location = msg['location']
+            print(location)
+            return Default.END
+
+        elif msg['text'] == 'favPick': 
+            if user in Default.fav_dict and Default.fav_dict[user][0][0] != None: # should change the fav dict to some other module object
+                Default.bot.sendMessage(user, 'search execute')
+                # search and show
+                return Default.END
+            else:
+                Default.bot.sendMessage(user, 'Favorite pick up locations is \
+                    not set, please use /addFav to set')
+                return Default.END
+            
+        else:
+            if user in Default.fav_dict and Default.fav_dict[user][1][0] != None: # should change the fav dict to some other module object
+                Default.bot.sendMessage(user, 'search execute')
+                return Default.END
+            else:
+                Default.bot.sendMessage(user, 'Favorite pick up locations is \
+                    not set, please use /addFav to set')
+                return Default.END
+        
 
 #-------------------------------------------------------------------------------    
     
@@ -230,8 +247,8 @@ class Default(PgmAbstract):
 
         Default.bot = bot
         Default.tb = tb
-        Default.statefun = [Default.state0, Default.state1]
-        Default.check_cmd = [Default.check0, Default.check1]
+        Default.statefun = [Default.state_request, Default.state_respond]
+        Default.check_cmd = [Default.check_start, Default.check_respond]
 
 #-------------------------------------------------------------------------------
     
@@ -239,14 +256,12 @@ class Default(PgmAbstract):
     def run(user, state, msg=None, args=None):
 
         '''
-        Execute the function of the program at the given state
+        Execute the function of the program at the given state and return the 
+        next state
         '''
 
-        state += Default.statefun[state](user, msg, args)
+        return Default.statefun[state](user, msg, args)
         
-        if state is len(Default.statefun):
-            return 0
-        return state
 
 ################################################################################
 
@@ -260,13 +275,16 @@ class Help(PgmAbstract):
     bot = None
     tb = None
 
+    INFORM = 0
+    END = -1
+
     statefun = []
     check_cmd = []
 
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def check0(msg):
+    def check_start(msg):
         
         '''
         check if the msg is a valid command for the program at state 0 
@@ -277,7 +295,7 @@ class Help(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state0(user, msg=None, args = None):
+    def state_inform(user, msg=None, args = None):
 
         '''
         The customized (given user) state 0 function for execution
@@ -294,7 +312,7 @@ class Help(PgmAbstract):
             /start : greeting!\n\
             /help : commands instructions')
 
-        return 1
+        return Help.END
 
 #-------------------------------------------------------------------------------
         
@@ -307,8 +325,8 @@ class Help(PgmAbstract):
 
         Help.bot = bot
         Help.tb = tb
-        Help.statefun = [Help.state0]
-        Help.check_cmd = [Help.check0]
+        Help.statefun = [Help.state_inform]
+        Help.check_cmd = [Help.check_start]
 
 #-------------------------------------------------------------------------------        
     
@@ -318,11 +336,9 @@ class Help(PgmAbstract):
         '''
         Execute the function of the program at the given state
         '''
+
+        return Help.statefun[state](user, args)
         
-        state += Help.statefun[state](user, args)
-        if state is len(Help.statefun):
-            return 0
-        return state
 
 ################################################################################
 
