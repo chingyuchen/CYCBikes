@@ -10,6 +10,7 @@ object communicates and executes the commands from the telegram users.
 '''
 ################################################################################
 
+import sqlite3
 import telepot     
 from telepot.loop import MessageLoop
 from time import sleep

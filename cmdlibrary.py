@@ -89,11 +89,11 @@ class Start(PgmAbstract):
             bikes station to pick up or drop off. Send /help for more\
             options')
 
-        return Start.END
+        return [Start.END, None]
 
 #-------------------------------------------------------------------------------
         
-    def __init__(self, bot, tb):
+    def __init__(self, bot, tb, sqlfile):
         
         '''
         the Start Class is initialized so the command execution will be operated
@@ -167,14 +167,14 @@ class Default(PgmAbstract):
 
         markup = types.ReplyKeyboardMarkup(row_width=2)
         itembtn1 = types.KeyboardButton('share location', request_location=True)
-        itembtn2 = types.KeyboardButton('favPick')
-        itembtn3 = types.KeyboardButton('favDrop')
+        itembtn2 = types.KeyboardButton('fav1')
+        itembtn3 = types.KeyboardButton('fav2')
         markup.add(itembtn1)
         markup.add(itembtn2)
         markup.add(itembtn3)
         Default.tb.send_message(user, "default state0", reply_markup=markup)
 
-        return Default.RESPOND
+        return [Default.RESPOND, None]
 
 #-------------------------------------------------------------------------------
 
@@ -191,7 +191,7 @@ class Default(PgmAbstract):
         if content_type is 'location':
             return True
         elif content_type is 'text':
-            if msg['text'] == 'favPick' or msg['text'] == 'favDrop':
+            if msg['text'] == 'fav1' or msg['text'] == 'fav2':
                 return True
             else:
                 return False
@@ -213,31 +213,31 @@ class Default(PgmAbstract):
         if content_type is 'location':
             location = msg['location']
             print(location)
-            return Default.END
+            return [Default.END, None]
 
-        elif msg['text'] == 'favPick': 
+        elif msg['text'] == 'fav1': 
             if user in Default.fav_dict and Default.fav_dict[user][0][0] != None: # should change the fav dict to some other module object
                 Default.bot.sendMessage(user, 'search execute')
                 # search and show
-                return Default.END
+                return [Default.END, None]
             else:
-                Default.bot.sendMessage(user, 'Favorite pick up locations is \
+                Default.bot.sendMessage(user, '1st Favorite location is \
                     not set, please use /addFav to set')
-                return Default.END
+                return [Default.END, None]
             
         else:
             if user in Default.fav_dict and Default.fav_dict[user][1][0] != None: # should change the fav dict to some other module object
                 Default.bot.sendMessage(user, 'search execute')
-                return Default.END
+                return [Default.END, None]
             else:
-                Default.bot.sendMessage(user, 'Favorite pick up locations is \
+                Default.bot.sendMessage(user, '2nd Favorite location is \
                     not set, please use /addFav to set')
-                return Default.END
+                return [Default.END, None]
         
 
 #-------------------------------------------------------------------------------    
     
-    def __init__(self, bot, tb):
+    def __init__(self, bot, tb, sqlfile):
 
         '''
         the Default Class is initialized so the command execution will be 
@@ -307,16 +307,14 @@ class Help(PgmAbstract):
             /addr : use address to identify the searching location.\n\
             /fav : show options of favorite location.\n\
             /addFav : add favorite locations.\n\
-            /favDi : search the ith favorite drop off location.\n\
-            /favPi : search the ith favorite pick up location.\n\
             /start : greeting!\n\
             /help : commands instructions')
 
-        return Help.END
+        return [Help.END, None]
 
 #-------------------------------------------------------------------------------
         
-    def __init__(self, bot, tb):
+    def __init__(self, bot, tb, sqlfile):
         
         '''
         the Help Class is initialized so the command execution will be operated
@@ -363,18 +361,27 @@ class CmdLibrary(object):
         # The object that show customized keyboard to the user.
         self.tb = tb
 
+        # Users sqlite3 database filename
+        self.sqlfile = ""
+
         # The dict that maps the commands to the corresponding pgm class name.
         self.command_class = {}
 
         # The dict that maps the commands to the corresponding pgm class.
         self.command_libarary = {}
 
+        with open('sqlfilename', 'r') as f:
+            self.sqlfile = f.read()
+        f.close()
+
         with open('commandsmap.json', 'r') as fp:
             self.command_class = json.load(fp)
 
         for key in self.command_class:
             self.command_libarary[key] = \
-            eval(self.command_class[key])(self.bot, self.tb)
+            eval(self.command_class[key])(self.bot, self.tb, self.sqlfile)
+
+        fp.close()
     
     
 ################################################################################
@@ -386,7 +393,7 @@ if __name__ == "__main__":
     TOKEN = input("Enter the TOKEN: ") 
     bot = telepot.Bot(TOKEN)
     tb = telebot.TeleBot(TOKEN)
-    testCmdLibrary = CmdLibrary(bot, tb)
+    testCmdLibrary = CmdLibrary(bot, tb, sqlfile)
     
     #help = testCmdLibrary.Help()
     #help.run()

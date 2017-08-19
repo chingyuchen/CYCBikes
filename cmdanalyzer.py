@@ -84,8 +84,8 @@ class CmdAnalyzer:
                 state_inform['state_num'] = 0
                 state_inform['check_cmd_fun'] = None
                 state_inform['arg'] = None
-                if len(commandi) != 1:
-                    state_inform['arg'] = commandi[1 : ] 
+                if len(commandi) != 1:               
+                    state_inform['arg'] = commandi[1 : ] # should add check valid arguments function!!
 
                 return True
             else:
@@ -101,8 +101,12 @@ class CmdAnalyzer:
 
         state_inform = self.user_state.get(chat_id)
         classi = self._command_libarary[state_inform['cmd']]
-        state_inform['state_num'] = \
+        
+        nextstate_info = \
         classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
+        state_inform['state_num'] = nextstate_info[0]
+        state_inform['arg'] = nextstate_info[1]
+        
         state_inform['check_cmd_fun'] = \
         classi.check_cmd[state_inform['state_num']]
 
@@ -110,7 +114,11 @@ class CmdAnalyzer:
           
             classi = self._command_libarary['/default']
             state_inform['cmd'] = '/default'
-            state_inform['state_num'] = classi.run(chat_id, 0)
+
+            nextstate_info = classi.run(chat_id, 0)
+            state_inform['state_num'] = nextstate_info[0]
+            state_inform['arg'] = nextstate_info[1]
+
             state_inform['check_cmd_fun'] = \
             classi.check_cmd[state_inform['state_num']]
 
