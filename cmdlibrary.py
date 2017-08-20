@@ -11,6 +11,7 @@ commands to the classes.
 '''
 ################################################################################
 
+import sqlite3
 import abc
 import telepot   
 import telebot
@@ -135,13 +136,15 @@ class Default(PgmAbstract):
 
     REQUEST = 0
     RESPOND = 1
+    SEARCH = 2
     END = -1
 
     statefun = []
     check_cmd = []
 
-    fav_dict = {}
-    # {user, [[favp1, favp2, favp3] [favd1, favd2, favd3]]}
+    conn = None
+    cur = None
+    sqlfile = None
 
 #-------------------------------------------------------------------------------
 
@@ -215,25 +218,56 @@ class Default(PgmAbstract):
             print(location)
             return [Default.END, None]
 
-        elif msg['text'] == 'fav1': 
-            if user in Default.fav_dict and Default.fav_dict[user][0][0] != None: # should change the fav dict to some other module object
-                Default.bot.sendMessage(user, 'search execute')
-                # search and show
-                return [Default.END, None]
-            else:
-                Default.bot.sendMessage(user, '1st Favorite location is \
-                    not set, please use /addFav to set')
-                return [Default.END, None]
-            
         else:
-            if user in Default.fav_dict and Default.fav_dict[user][1][0] != None: # should change the fav dict to some other module object
-                Default.bot.sendMessage(user, 'search execute')
-                return [Default.END, None]
+            conn = sqlite3.connect(Default.sqlfile)
+            cur = conn.cursor()
+            cur.execute('SELECT * FROM Favs WHERE id = ?', (user,))
+            fav_dict = cur.fetchone()
+            print(fav_dict)
+            
+            location = None
+            if msg['text'] == 'fav1': 
+                if fav_dict is None or fav_dict[1] is None or fav_dict[2] is None: # bad index
+                    Default.bot.sendMessage(user, '1st Favorite location is not set, please use /addFav to set')
+                    conn.close()
+                    return [Default.END, None]
+                else:
+                    location = {'latitude': fav_dict[1], 'longitude': fav_dict[2]}
+                    #location = [fav_dict[1], fav_dict[2]]
+            
             else:
-                Default.bot.sendMessage(user, '2nd Favorite location is \
-                    not set, please use /addFav to set')
-                return [Default.END, None]
+                if fav_dict is None or fav_dict[3] is None or fav_dict[4] is None: # bad index
+                    Default.bot.sendMessage(user, '2nd Favorite location is not set, please use /addFav to set')
+                    conn.close()
+                    return [Default.END, None]
+                else:
+                    location = {'latitude': fav_dict[3], 'longitude': fav_dict[4]}
+                    #location = [fav_dict[3], fav_dict[4]]
+            
+
+            markup = types.ReplyKeyboardMarkup(row_width=2)
+            itembtn1 = types.KeyboardButton('PickUp')
+            itembtn2 = types.KeyboardButton('DropOff')
+            markup.add(itembtn1)
+            markup.add(itembtn2)
+            Default.tb.send_message(user, "Pick up or drop off?", reply_markup=markup)
+            conn.close()
+            # search and show
+            return [Default.SEARCH, location]
         
+#-------------------------------------------------------------------------------
+
+    @staticmethod
+    def check_pickordrop(msg):
+        return True
+
+#-------------------------------------------------------------------------------
+
+    @staticmethod
+    def state_search(user, msg, args):
+        print("args = " + str(args))
+        Default.tb.send_message(user, "search execute")
+        return [Default.END, None]
 
 #-------------------------------------------------------------------------------    
     
@@ -247,8 +281,12 @@ class Default(PgmAbstract):
 
         Default.bot = bot
         Default.tb = tb
-        Default.statefun = [Default.state_request, Default.state_respond]
-        Default.check_cmd = [Default.check_start, Default.check_respond]
+        Default.statefun = [Default.state_request, Default.state_respond, \
+                            Default.state_search]
+        Default.check_cmd = [Default.check_start, Default.check_respond, \
+                            Default.check_pickordrop]
+        Default.sqlfile = sqlfile
+
 
 #-------------------------------------------------------------------------------
     

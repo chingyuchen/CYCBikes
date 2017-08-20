@@ -68,7 +68,8 @@ class CmdAnalyzer:
         if state_inform['check_cmd_fun'](msg):  # check valid current pgm cmd
             if content_type is 'text':
                 commandi = msg['text'].split()
-                state_inform['arg'] = None
+                if 'arg' not in state_inform:
+                    state_inform['arg'] = None
                 if len(commandi) != 1:
                     state_inform['arg'] = commandi[1 : ] 
 
@@ -102,10 +103,17 @@ class CmdAnalyzer:
         state_inform = self.user_state.get(chat_id)
         classi = self._command_libarary[state_inform['cmd']]
         
+        print("before execute, stateinfo = " + str(state_inform))
         nextstate_info = \
         classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
         state_inform['state_num'] = nextstate_info[0]
+        
+
         state_inform['arg'] = nextstate_info[1]
+
+        print("return stateinfo = " + str(state_inform))
+
+
         
         state_inform['check_cmd_fun'] = \
         classi.check_cmd[state_inform['state_num']]
