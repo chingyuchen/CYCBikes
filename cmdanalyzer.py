@@ -103,16 +103,11 @@ class CmdAnalyzer:
         state_inform = self.user_state.get(chat_id)
         classi = self._command_libarary[state_inform['cmd']]
         
-        print("before execute, stateinfo = " + str(state_inform))
         nextstate_info = \
         classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
+
         state_inform['state_num'] = nextstate_info[0]
-        
-
         state_inform['arg'] = nextstate_info[1]
-
-        print("return stateinfo = " + str(state_inform))
-
 
         
         state_inform['check_cmd_fun'] = \

@@ -11,6 +11,7 @@ commands to the classes.
 '''
 ################################################################################
 
+import citybikes
 import sqlite3
 import abc
 import telepot   
@@ -86,9 +87,7 @@ class Start(PgmAbstract):
         state increment.
         '''
 
-        Start.bot.sendMessage(user, 'Hi, NAME! cycbikes helps you to find the \
-            bikes station to pick up or drop off. Send /help for more\
-            options')
+        Start.bot.sendMessage(user, 'Hi, NAME! cycbikes helps you to find the bikes station to pick up or drop off. Send /help for more options')
 
         return [Start.END, None]
 
@@ -175,7 +174,7 @@ class Default(PgmAbstract):
         markup.add(itembtn1)
         markup.add(itembtn2)
         markup.add(itembtn3)
-        Default.tb.send_message(user, "default state0", reply_markup=markup)
+        Default.tb.send_message(user, "Where do you want to search?", reply_markup=markup)
 
         return [Default.RESPOND, None]
 
@@ -210,22 +209,19 @@ class Default(PgmAbstract):
         The customized (given user) state 1 function for execution. Return the 
         state increment.
         '''
-        Default.bot.sendMessage(user, 'state one execute')
+        #Default.bot.sendMessage(user, 'state one execute')
 
         content_type, chat_type, chat_id = telepot.glance(msg)
+        location = None
         if content_type is 'location':
             location = msg['location']
-            print(location)
-            return [Default.END, None]
 
         else:
             conn = sqlite3.connect(Default.sqlfile)
             cur = conn.cursor()
             cur.execute('SELECT * FROM Favs WHERE id = ?', (user,))
             fav_dict = cur.fetchone()
-            print(fav_dict)
             
-            location = None
             if msg['text'] == 'fav1': 
                 if fav_dict is None or fav_dict[1] is None or fav_dict[2] is None: # bad index
                     Default.bot.sendMessage(user, '1st Favorite location is not set, please use /addFav to set')
@@ -243,30 +239,54 @@ class Default(PgmAbstract):
                 else:
                     location = {'latitude': fav_dict[3], 'longitude': fav_dict[4]}
                     #location = [fav_dict[3], fav_dict[4]]
+            conn.close()
             
 
-            markup = types.ReplyKeyboardMarkup(row_width=2)
-            itembtn1 = types.KeyboardButton('PickUp')
-            itembtn2 = types.KeyboardButton('DropOff')
-            markup.add(itembtn1)
-            markup.add(itembtn2)
-            Default.tb.send_message(user, "Pick up or drop off?", reply_markup=markup)
-            conn.close()
-            # search and show
-            return [Default.SEARCH, location]
+        markup = types.ReplyKeyboardMarkup(row_width=2)
+        itembtn1 = types.KeyboardButton('PickUp')
+        itembtn2 = types.KeyboardButton('DropOff')
+        markup.add(itembtn1)
+        markup.add(itembtn2)
+        Default.tb.send_message(user, "Pick up or drop off?", reply_markup=markup)
+        
+        # search and show
+        return [Default.SEARCH, location]
         
 #-------------------------------------------------------------------------------
 
     @staticmethod
     def check_pickordrop(msg):
-        return True
+        
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        if content_type is not 'text':
+            return False
+        elif msg['text'] == 'PickUp' or msg['text'] == 'DropOff':
+                return True
+        else:
+            return False
 
 #-------------------------------------------------------------------------------
 
     @staticmethod
     def state_search(user, msg, args):
-        print("args = " + str(args))
-        Default.tb.send_message(user, "search execute")
+        # args = {'latitude': 0.0, 'longitude': 0.0}
+
+        client = citybikes.Client()
+        net, dist = next(iter(client.networks.near(args['latitude'], args['longitude'])))
+        sts = net.stations.near(args['latitude'], args['longitude'])
+
+        # 'Coordinates: {latitude}, {longitude}'.format(latitude='37.24N', longitude='-115.81W')
+        for stai in sts:
+            if msg['text'] == 'PickUp' and stai[0]['empty_slots'] != 0: 
+                Default.tb.send_message(user, "station {name} has {count} empty slots".format(name=stai[0]['name'], count=stai[0]['empty_slots']))
+                return [Default.END, None]
+         
+            if msg['text'] == 'DropOff' and stai[0]['free_bikes'] != 0: 
+                Default.tb.send_message(user, "station {name} has {count} free bikes".format(name=stai[0]['name'], count=stai[0]['free_bikes']))
+                return [Default.END, None]
+
+        Default.tb.send_message(user, "Sorry no available stations")
+
         return [Default.END, None]
 
 #-------------------------------------------------------------------------------    

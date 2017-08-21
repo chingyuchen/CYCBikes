@@ -58,7 +58,7 @@ class CYCTelebot:
         content_type, chat_type, chat_id = telepot.glance(msg)
         
         if self.cmdanalyzeri.is_command(msg): 
-            self.bot.sendMessage(chat_id, 'is a command!')
+            #self.bot.sendMessage(chat_id, 'is a command!')
             self.cmdanalyzeri.execute(chat_id, msg)
         else:
             self.bot.sendMessage(chat_id, ' （ˊ＾ˋ ） ') 
