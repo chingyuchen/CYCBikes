@@ -1,4 +1,13 @@
 ################################################################################
+'''
+File: help.py
+Author: Ching-Yu Chen
+
+Description:
+Help pgm send the commands instruction to the users.
+
+'''
+################################################################################
 
 import abc
 import telepot      
@@ -12,7 +21,7 @@ class PgmAbstract(object):
     '''
 
     # pgm execute command
-    name = "/start"
+    name = ""
     
     # object of telepot, sending and receiving messages from telegram users
     bot = None
@@ -37,12 +46,11 @@ class PgmAbstract(object):
 class Help(PgmAbstract):
 
     ''' 
-    "/help" command program. Send information of the commands to the user
+    "/help" command program. Send information of the commands to the user.
     '''
     
     name = "/help"
     bot = None
-    tb = None
 
     INFORM = 0
     END = -1
@@ -56,7 +64,8 @@ class Help(PgmAbstract):
     def check_start(msg):
         
         '''
-        check if the msg is a valid command for the program at state 0 
+        Return true if the msg is a valid command for the program at start state.
+        Otherwise, return false.
         '''
 
         return True
@@ -67,15 +76,15 @@ class Help(PgmAbstract):
     def state_inform(user, msg=None, args = None):
 
         '''
-        The customized (given user) state 0 function for execution
+        The inform state function. Send commands instruction to the users and
+        return the enum of the end state.
         '''
 
-        Start.bot.sendMessage(user, \
-            '/default : use current location or top favorite location.\n'
-            '/map : use map to identify the searching location.\n'
+        Help.bot.sendMessage(user, \
+            '/default : use current location or favorite locations.\n'
             '/addr : use address to identify the searching location.\n'
-            '/fav : show options of favorite location.\n'
-            '/addFav : add favorite locations.\n'
+            '/fav : show current list of favorite locations.\n'
+            '/editFav : edit favorite locations.\n'
             '/start : greeting!\n'
             '/help : commands instructions')
 
@@ -87,11 +96,10 @@ class Help(PgmAbstract):
         
         '''
         the Help Class is initialized so the command execution will be operated
-        by the given the bot and the tb object (telepot and telebot object). 
+        by the given the bot object (telepot object). 
         '''
 
         Help.bot = bot
-        Help.tb = tb
         Help.statefun = [Help.state_inform]
         Help.check_cmd = [Help.check_start]
 
@@ -104,5 +112,5 @@ class Help(PgmAbstract):
         Execute the function of the program at the given state
         '''
 
-        return Help.statefun[state](user, args)
+        return Help.statefun[state](user, msg, args)
         

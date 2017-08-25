@@ -1,1 +1,1 @@
-{"/help": "help.Help", "/start" : "start.Start", "/default" : "default.Default", "/addr" : "address.Address"}
+{"/help": "help.Help", "/start" : "start.Start", "/default" : "default.Default", "/addr" : "address.Address", "/editFav" : "editfav.EditFav", "/fav":"fav.Fav"}

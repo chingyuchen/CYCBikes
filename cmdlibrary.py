@@ -3,21 +3,18 @@
 File: cmdlibrary.py
 Author : Ching-Yu Chen
 
-Description: cmdlibrary.py contains all the program classes of a designed 
-telegram-bot. The list of corresponding commands and the name of classes are in 
-the commandsmap.json. The class CmdLibrary contains the dict that map the 
-commands to the classes.
+Description: cmdlibrary.py contains a dict that maps the commands to all the 
+program classes of a designed telegram-bot. The list of corresponding commands 
+and the name of the classes are in the commandsmap.json. 
 
 '''
 ################################################################################
 
 from pydoc import locate
-import citybikes
 import sqlite3
-import abc
 import telepot   
 import telebot
-from telebot import types
+#from telebot import types
 import json
 
 
@@ -59,15 +56,14 @@ class CmdLibrary(object):
 
         with open('commandsmap.json', 'r') as fp:
             self.command_class = json.load(fp)
+        fp.close()
 
         for key in self.command_class:
             try:
-                self.command_libarary[key] = locate(self.command_class[key])(self.bot, self.tb, self.sqlfile)
+                self.command_libarary[key] = locate(self.command_class[key])\
+                (self.bot, self.tb, self.sqlfile)
             except:
                 print(key + " class not exist")
-            
-
-        fp.close()
     
     
 ################################################################################
@@ -81,6 +77,4 @@ if __name__ == "__main__":
     tb = telebot.TeleBot(TOKEN)
     testCmdLibrary = CmdLibrary(bot, tb)
     
-    #help = testCmdLibrary.Help()
-    #help.run()
-
+   

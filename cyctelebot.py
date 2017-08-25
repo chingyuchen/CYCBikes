@@ -10,7 +10,6 @@ object communicates and executes the commands from the telegram users.
 '''
 ################################################################################
 
-import sqlite3
 import telepot     
 from telepot.loop import MessageLoop
 from time import sleep
@@ -29,11 +28,8 @@ class CYCTelebot:
     '''
 #-------------------------------------------------------------------------------
 
-    def __init__(self, TOKEN, testuser):
+    def __init__(self, TOKEN):
 
-        # Testing user id for the CYCTelebot
-        self.testuser = testuser
-        
         # The token of the CYCTelebot
         self.TOKEN = TOKEN;
 
@@ -51,34 +47,32 @@ class CYCTelebot:
     def testHandle(self, msg):
         
         ''' 
-        handle the received msg. If the msg is a command than execute the 
+        Handle the received msg. If the msg is a command than execute the 
         command. Otherwise send a message of "not a command".
         '''
 
         content_type, chat_type, chat_id = telepot.glance(msg)
         
         if self.cmdanalyzeri.is_command(msg): 
-            #self.bot.sendMessage(chat_id, 'is a command!')
             self.cmdanalyzeri.execute(chat_id, msg)
         else:
             self.bot.sendMessage(chat_id, ' （ˊ＾ˋ ） ') 
-            self.bot.sendMessage(chat_id, 'not a command!')
+            self.bot.sendMessage(chat_id, 'Not a valid command. Please retype '
+                'the command or type /help for command instructions.')
                 
 #-------------------------------------------------------------------------------
 
     def run(self):
 
         '''
-        Run the CYCTelebot object. Starts handling the receive message from 
+        Run the CYCTelebot object. Starts handling the received messages from 
         the telegram users.
         '''
-
-        self.cmdanalyzeri.intl_execute(self.testuser)
 
         MessageLoop(self.bot, self.testHandle).run_as_thread()
 
         while True:
-            sleep(10)
+            sleep(1)
 
 ################################################################################
 
@@ -89,7 +83,6 @@ if __name__ == "__main__":
     '''
 
     TOKEN = input("Enter the TOKEN: ") 
-    chat_id = int(input("Enter the test chat_id: "))
-    testclass = CYCTelebot(TOKEN, chat_id)
+    testclass = CYCTelebot(TOKEN)
     testclass.run()
     

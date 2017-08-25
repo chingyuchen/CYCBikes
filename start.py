@@ -1,4 +1,13 @@
 ################################################################################
+'''
+File: start.py
+Author: Ching-Yu Chen
+
+Description:
+Start pgm greets to the CYCBikes user.
+
+'''
+################################################################################
 
 import abc
 import telepot   
@@ -16,9 +25,6 @@ class PgmAbstract(object):
     
     # object of telepot, sending and receiving messages from telegram users
     bot = None
-    
-    # object of telepot, shows customized keyboard to telegram users
-    tb = None
 
     # function list to execute at different state
     statefun = []
@@ -56,7 +62,8 @@ class Start(PgmAbstract):
     def check_start(msg):
         
         '''
-        check if the msg is a valid command for the program at state 0 
+        Return true if the command is valid for start state. Otherwise,
+        return false. 
         '''
 
         return True
@@ -64,15 +71,20 @@ class Start(PgmAbstract):
 #-------------------------------------------------------------------------------
 
     @staticmethod
-    def state_greeting(user, msg=None, args=None):
+    def state_greeting(user, msg, args=None):
 
         '''
-        The customized (given user) state 0 function for execution. Return the
-        state increment.
+        The greeting state function. Send greeting to the user and return enum 
+        of the end state function. args provide the user name.
         '''
 
-        Start.bot.sendMessage(user, 'Hi, NAME! cycbikes helps you to find the'
-        ' bikes station to pick up or drop off. Send /help for more options')
+        if args is None:
+            name = msg['from']['first_name']
+            args = [name, ]
+
+        Start.bot.sendMessage(user, 'Hi, {first_name}! CYCBikes helps you to '
+            'find the bike-share station to pick up or drop off bikes. Send '
+            '/help for more options'.format(first_name=args[0]))
 
         return [Start.END, None]
 
@@ -82,11 +94,10 @@ class Start(PgmAbstract):
         
         '''
         the Start Class is initialized so the command execution will be operated
-        by the given the bot and the tb object (telepot and telebot object). 
+        by the given the bot object (telepot object). 
         '''
 
         Start.bot = bot
-        Start.tb = tb
 
         Start.statefun = [Start.state_greeting]
         Start.check_cmd = [Start.check_start]
@@ -101,6 +112,6 @@ class Start(PgmAbstract):
         next state
         '''
 
-        return Start.statefun[state](user, args)
+        return Start.statefun[state](user, msg, args)
         
 ################################################################################

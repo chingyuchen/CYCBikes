@@ -31,29 +31,26 @@ class CmdAnalyzer:
         self.bot = bot
 
         # the object that contains the information of the commands and 
-        # corresponding programs.
+        # the corresponding programs.
         self.commandsclass = CmdLibrary(bot, tb)
 
         # the dict that maps the commands to the program 
         self._command_libarary = self.commandsclass.command_libarary
 
         # the dict that maps the user to the current running program state
-        # {userID, 
-        # {'cmd'='/pgm', 'state_num'=int, 'check_cmd_fun'=fun, 'arg' = [args]}}
         self.user_state = {}
         
 #-------------------------------------------------------------------------------
 
-    def intl_execute(self, userid):
+    def intl_execute(self, userid, arg):
 
         ''' 
         The first function execute when starting a conversation with userid.
-        It runs the "/start" cmd and then run the "/default" cmd
+        It runs the "/start" cmd and then run the "/default" cmd.
         '''
         
-        state_inform = {'cmd' : '/start', 'state_num' : 0, 'arg' : None}
+        state_inform = {'cmd' : '/start', 'state_num' : 0, 'arg' : arg}
         self.user_state[userid] = state_inform
-        self.execute(userid)
 
 #-------------------------------------------------------------------------------
 
@@ -64,30 +61,30 @@ class CmdAnalyzer:
         '''
 
         content_type, chat_type, chat_id = telepot.glance(msg)
-        state_inform = self.user_state.get(chat_id)
-        if state_inform['check_cmd_fun'](msg):  # check valid current pgm cmd
-            if content_type is 'text':
-                commandi = msg['text'].split()
-                if 'arg' not in state_inform:
-                    state_inform['arg'] = None
-                if len(commandi) != 1:
-                    state_inform['arg'] = commandi[1 : ] 
-
+        state_inform = self.user_state.get(chat_id, None)
+        
+        if state_inform is None:
+            name = msg['from']['first_name']
+            arg = [name, ]
+            self.intl_execute(chat_id, arg)
             return True
 
-        elif content_type != 'text':  # check valid new cmd type
+        if state_inform['check_cmd_fun'](msg):  # check valid current pgm cmd
+            if content_type is 'text':
+                if 'arg' not in state_inform:
+                    state_inform['arg'] = None
+            return True
+
+        elif content_type != 'text':  # check valid new pgm cmd type
             return False
         
         else:
-            commandi = msg['text'].split()
-            if commandi[0] in self._command_libarary:  # check new pgm cmd
-                state_inform['cmd'] = commandi[0]
+            commandi = msg['text']
+            if commandi in self._command_libarary:  # check new pgm cmd
+                state_inform['cmd'] = commandi
                 state_inform['state_num'] = 0
                 state_inform['check_cmd_fun'] = None
                 state_inform['arg'] = None
-                if len(commandi) != 1:               
-                    state_inform['arg'] = commandi[1 : ] # should add check valid arguments function!!
-
                 return True
             else:
                 return False
@@ -107,9 +104,7 @@ class CmdAnalyzer:
         classi.run(chat_id, state_inform['state_num'], msg, state_inform['arg'])
 
         state_inform['state_num'] = nextstate_info[0]
-        state_inform['arg'] = nextstate_info[1]
-
-        
+        state_inform['arg'] = nextstate_info[1]  
         state_inform['check_cmd_fun'] = \
         classi.check_cmd[state_inform['state_num']]
 
@@ -117,11 +112,12 @@ class CmdAnalyzer:
           
             classi = self._command_libarary['/default']
             state_inform['cmd'] = '/default'
+            state_inform['state_num'] = 0
 
             nextstate_info = classi.run(chat_id, 0)
+            
             state_inform['state_num'] = nextstate_info[0]
             state_inform['arg'] = nextstate_info[1]
-
             state_inform['check_cmd_fun'] = \
             classi.check_cmd[state_inform['state_num']]
 

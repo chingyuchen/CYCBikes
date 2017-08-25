@@ -1,10 +1,20 @@
 ################################################################################
+'''
+File: address.py
+Author: Ching-Yu Chen
+
+Description:
+address pgm allows to search the bikes station with the address.
+
+'''
+################################################################################
 import abc
 import geocoder
 import telepot   
 import telebot
 import citybikes
 from telebot import types
+from geopy.distance import vincenty
 
 ################################################################################
 
@@ -15,7 +25,7 @@ class PgmAbstract(object):
     '''
 
     # pgm execute command
-    name = "/start"
+    name = ""
     
     # object of telepot, sending and receiving messages from telegram users
     bot = None
@@ -40,7 +50,7 @@ class PgmAbstract(object):
 class Address(PgmAbstract):
     
     ''' 
-    "/addr" command program. 
+    "/addr" command program. User can search the bikes station with the address.
     '''
 
     name = "/addr"
@@ -65,7 +75,8 @@ class Address(PgmAbstract):
     def check_start(msg=None):
 
         '''
-        check if the msg is a valid command for the program at state 0 
+        Check if the msg is a valid command for the start state. Return true if 
+        it is valid, otherwise, return false.
         '''
         
         return True
@@ -76,7 +87,8 @@ class Address(PgmAbstract):
     def state_request(user, msg=None, args=None):
         
         '''
-        Request address from the user
+        Request state function. Send message to request the address from the 
+        user. Return the enum of the respond state.
         '''
 
         Address.tb.send_message(user, "Please enter the address.")
@@ -89,7 +101,8 @@ class Address(PgmAbstract):
     def check_respond(msg):
 
         '''
-        Return whether a msg is a valid command (text form). 
+        Return whether a msg is a valid command (text form) for the respond 
+        state. 
         '''
 
         content_type, chat_type, chat_id = telepot.glance(msg)
@@ -104,8 +117,11 @@ class Address(PgmAbstract):
     def state_respond(user, msg, args=None):
 
         '''
-        The customized (given user) state 1 function for execution. Return the 
-        state increment.
+        The respond state function. Use the address (msg) from the user to 
+        search the corresponding address. Send the user message of the 
+        corresponding address and ask the user to choose between 'PickUp', 
+        'DropOff' or 'WrongAddress'. Return the enum of the search state and the
+        corresponding address.
         '''
 
         content_type, chat_type, chat_id = telepot.glance(msg)
@@ -134,11 +150,17 @@ class Address(PgmAbstract):
 
     @staticmethod
     def check_options(msg):
+
+        '''
+        The check function for the search state. If the command(msg) is valid
+        return true. Otherwise, return false.
+        '''
         
         content_type, chat_type, chat_id = telepot.glance(msg)
         if content_type is not 'text':
             return False
-        elif msg['text'] == 'PickUp' or msg['text'] == 'DropOff' or msg['text'] == 'WrongAddress':
+        elif msg['text'] == 'PickUp' or msg['text'] == 'DropOff' or \
+        msg['text'] == 'WrongAddress':
                 return True
         else:
             return False
@@ -148,24 +170,52 @@ class Address(PgmAbstract):
     @staticmethod
     def state_search(user, msg, args):
 
+        '''
+        The search state function. If the user replied 'WrongAddress', send 
+        message to request the address again and return to the enum of the 
+        respond state. Otherwise, search the nearest bike station and send the 
+        information to the user. Return the enum of the end state.
+        '''
+
         if msg['text'] == 'WrongAddress':
             Address.tb.send_message(user, "Please enter the address.")
             return [Address.RESPOND, None]
         
         client = citybikes.Client()
         net, dist = next(iter(client.networks.near(args['latitude'], args['longitude'])))
+        posi1 = (args['latitude'], args['longitude'])
         sts = net.stations.near(args['latitude'], args['longitude'])
 
         for stai in sts:
             if msg['text'] == 'PickUp' and stai[0]['empty_slots'] != 0: 
-                Address.tb.send_message(user, "station {name} has {count} empty slots".format(name=stai[0]['name'], count=stai[0]['empty_slots']))
+                Address.tb.send_location(\
+                    user, stai[0]['latitude'], stai[0]['longitude'])
+                
+                posi2 = (stai[0]['latitude'], stai[0]['longitude'])
+                distval = vincenty(posi1, posi2).meters
+                distS = "{:100.2f}".format(distval)
+                
+                Address.tb.send_message(user, "Station {name} has {count} "\
+                    "empty slots. It is {dist} meters away from the address."\
+                    .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
+                     dist=distS))
                 return [Address.END, None]
          
             if msg['text'] == 'DropOff' and stai[0]['free_bikes'] != 0: 
-                Address.tb.send_message(user, "station {name} has {count} free bikes".format(name=stai[0]['name'], count=stai[0]['free_bikes']))
+                Address.tb.send_location(\
+                    user, stai[0]['latitude'], stai[0]['longitude'])
+                
+                posi2 = (stai[0]['latitude'], stai[0]['longitude'])
+                distval = vincenty(posi1, posi2).meters
+                distS = "{:100.2f}".format(distval)
+               
+                Address.tb.send_message(user, "Station {name} has {count} "\
+                    "free bikes. It is {dist} meters away from the address."\
+                    .format(name=stai[0]['name'], count=stai[0]['free_bikes'],\
+                     dist=distS))
                 return [Address.END, None]
 
-        Address.tb.send_message(user, "Sorry no available stations")
+        Address.tb.send_message(user, "Sorry no available stations.")
 
         return [Address.END, None]
 
@@ -176,7 +226,7 @@ class Address(PgmAbstract):
         '''
         the Address Class is initialized so the command execution will be 
         operated by the given the bot and the tb object (telepot and telebot 
-        object). 
+        object). The user information is in the sqlfile.
         '''
 
         Address.bot = bot
