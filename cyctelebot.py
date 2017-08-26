@@ -15,7 +15,7 @@ from telepot.loop import MessageLoop
 from time import sleep
 from cmdanalyzer import *
 import telebot
-from telebot import types
+#from telebot import types
 
 ################################################################################
 
