@@ -14,9 +14,7 @@ from pydoc import locate
 import sqlite3
 import telepot   
 import telebot
-#from telebot import types
 import json
-
 
 ################################################################################
 
@@ -50,9 +48,14 @@ class CmdLibrary(object):
         # The dict that maps the commands to the corresponding pgm class.
         self.command_libarary = {}
 
-        with open('sqlfilename', 'r') as f:
-            self.sqlfile = f.read()
+        self.sqlfile = "usersinfo.sqlite3"
+        with open('usersinfo.sqlite3', 'a+') as f:
+            try:
+                assert(f != None)
+            except:
+                print("no user info file")
         f.close()
+        
 
         with open('commandsmap.json', 'r') as fp:
             self.command_class = json.load(fp)

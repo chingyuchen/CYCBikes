@@ -8,6 +8,7 @@ address pgm allows to search the bikes station with the address.
 
 '''
 ################################################################################
+
 import abc
 import geocoder
 import telepot   
@@ -128,11 +129,15 @@ class Address(PgmAbstract):
         location = None
         addr = msg['text']
 
-        g = geocoder.google(addr)
-        location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
-        corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
-
-        Address.bot.sendMessage(user, 'Search for ' + corres_addr.address)
+        try:
+            g = geocoder.google(addr)
+            location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
+            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
+            Address.bot.sendMessage(user, 'Search for ' + corres_addr.address)
+        except:
+            print("Error accessing geocoder")
+            Address.tb.send_message(user, "Sorry the geocoder can't find the address :(")
+            return [Address.END, None]
 
         markup = types.ReplyKeyboardMarkup(row_width=2)
         itembtn1 = types.KeyboardButton('PickUp')
@@ -181,10 +186,16 @@ class Address(PgmAbstract):
             Address.tb.send_message(user, "Please enter the address.")
             return [Address.RESPOND, None]
         
-        client = citybikes.Client()
-        net, dist = next(iter(client.networks.near(args['latitude'], args['longitude'])))
-        posi1 = (args['latitude'], args['longitude'])
-        sts = net.stations.near(args['latitude'], args['longitude'])
+        try:
+            client = citybikes.Client()
+            net, dist = next(iter(client.networks.near(args['latitude'], args['longitude'])))
+            posi1 = (args['latitude'], args['longitude'])
+            sts = net.stations.near(args['latitude'], args['longitude'])
+        except:
+            print("Error accessing citybikes information")
+            Address.tb.send_message(user, "Sorry the citybikes network currently"
+                "is not operating. Can't access the bike station information. :(")
+            return [Address.END, None]
 
         for stai in sts:
             if msg['text'] == 'PickUp' and stai[0]['empty_slots'] != 0: 
@@ -195,7 +206,7 @@ class Address(PgmAbstract):
                 distval = vincenty(posi1, posi2).meters
                 distS = "{:100.2f}".format(distval)
                 
-                Address.tb.send_message(user, "Station {name} has {count} "\
+                Address.tb.send_message(user, "The station {name} has {count} "\
                     "empty slots. It is {dist} meters away from the address."\
                     .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
                      dist=distS))
@@ -209,7 +220,7 @@ class Address(PgmAbstract):
                 distval = vincenty(posi1, posi2).meters
                 distS = "{:100.2f}".format(distval)
                
-                Address.tb.send_message(user, "Station {name} has {count} "\
+                Address.tb.send_message(user, "The station {name} has {count} "\
                     "free bikes. It is {dist} meters away from the address."\
                     .format(name=stai[0]['name'], count=stai[0]['free_bikes'],\
                      dist=distS))
