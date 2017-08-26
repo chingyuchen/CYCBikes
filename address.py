@@ -14,7 +14,6 @@ import geocoder
 import telepot   
 import telebot
 import citybikes
-from telebot import types
 from geopy.distance import vincenty
 
 ################################################################################
@@ -139,10 +138,10 @@ class Address(PgmAbstract):
             Address.tb.send_message(user, "Sorry the geocoder can't find the address :(")
             return [Address.END, None]
 
-        markup = types.ReplyKeyboardMarkup(row_width=2)
-        itembtn1 = types.KeyboardButton('PickUp')
-        itembtn2 = types.KeyboardButton('DropOff')
-        itembtn3 = types.KeyboardButton('WrongAddress')
+        markup = (row_width=2)
+        itembtn1 = telebot.types.KeyboardButton('PickUp')
+        itembtn2 = telebot.types.KeyboardButton('DropOff')
+        itembtn3 = telebot.types.KeyboardButton('WrongAddress')
         markup.add(itembtn1)
         markup.add(itembtn2)
         markup.add(itembtn3)
