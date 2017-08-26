@@ -96,18 +96,35 @@ class Fav(PgmAbstract):
             if fav_dict[1] is not None: # bad index
                 lat = fav_dict[1]
                 lon = fav_dict[2]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav1"] = corres_addr.address
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse', key=Fav.key)
+                    favs["fav1"] = corres_addr.address
+                except:
+                    print("Error in accessing geocoder")
+                    Fav.bot.sendMessage(user, "Sorry there's problem accessing geocoder")
+                    return [Fav.END, None]
+
             if fav_dict[3] is not None:
                 lat = fav_dict[3]
                 lon = fav_dict[4]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav2"] = corres_addr.address
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse', key=Fav.key)
+                    favs["fav2"] = corres_addr.address
+                except:
+                    print("Error in accessing geocoder")
+                    Fav.bot.sendMessage(user, "Sorry there's problem accessing geocoder")
+                    return [Fav.END, None]
+
             if fav_dict[5] is not None:
                 lat = fav_dict[5]
                 lon = fav_dict[6]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav3"] = corres_addr.address
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse', key=Fav.key)
+                    favs["fav3"] = corres_addr.address
+                except:
+                    print("Error in accessing geocoder")
+                    Fav.bot.sendMessage(user, "Sorry there's problem accessing geocoder")
+                    return [Fav.END, None]
 
         respond_msg = 'Here is the list of your favorites locations.'\
         ' You can have at most three favorite locations.\n* Fav1 : {favs1}\n'\
@@ -132,7 +149,16 @@ class Fav(PgmAbstract):
         Fav.statefun = [Fav.state_inform]
         Fav.check_cmd = [Fav.check_start]
         Fav.sqlfile = sqlfile
-
+        Fav.key = "" 
+        try:
+            with open('geocoder_key','r') as f:
+                Fav.key = f.read().strip()
+            f.close()
+            assert(len(Fav.key) != 0)
+        except:
+            print("error in accessing geocoder key")
+            Fav.bot.sendMessage(user, "Sorry there's problem using geocoder")
+                
 #-------------------------------------------------------------------------------        
     
     @staticmethod # Should be inherit
@@ -143,4 +169,18 @@ class Fav(PgmAbstract):
         '''
 
         return Fav.statefun[state](user, msg, args)
+
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    '''
+    For testing
+    '''
+    TOKEN = input("Enter the TOKEN: ")
+    bot = telepot.Bot(TOKEN)
+    sqlfile = None
+    with open('sqlfilename', 'r') as f:
+        sqlfile = f.read()
+    f.close
+    fav_class = Fav(bot, None, sqlfile)
         

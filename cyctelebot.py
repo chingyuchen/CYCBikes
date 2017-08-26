@@ -15,7 +15,7 @@ from telepot.loop import MessageLoop
 from time import sleep
 from cmdanalyzer import *
 import telebot
-#from telebot import types
+from telebot import types
 
 ################################################################################
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     '''
     TOKEN = ""
     with open('cycbikes_TOKEN', 'r') as f:
-        TOKEN = f.read()
+        TOKEN = f.read().strip()
     f.close()
 
     testclass = CYCTelebot(TOKEN)
