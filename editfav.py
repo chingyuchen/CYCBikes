@@ -108,7 +108,8 @@ class EditFav(PgmAbstract):
                 lon = fav_dict[2]
                 
                 try:
-                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    corres_addr = geocoder.google([lat, lon], method='reverse', \
+                            key=EditFav.key)
                     favs["fav1"] = corres_addr.address
                 except:
                     print("error using geocoder")
@@ -122,7 +123,8 @@ class EditFav(PgmAbstract):
                 lon = fav_dict[4]
 
                 try:
-                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    corres_addr = geocoder.google([lat, lon], method='reverse',\
+                            key=EditFav.key)
                     favs["fav2"] = corres_addr.address
                 except:
                     print("error using geocoder")
@@ -136,7 +138,8 @@ class EditFav(PgmAbstract):
                 lon = fav_dict[6]
                 
                 try:
-                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    corres_addr = geocoder.google([lat, lon], method='reverse',\
+                            key=EditFav.key)
                     favs["fav3"] = corres_addr.address
                 except:
                     print("error using geocoder")
@@ -240,9 +243,10 @@ class EditFav(PgmAbstract):
         addr = msg['text']
 
         try:
-            g = geocoder.google(addr)
+            g = geocoder.google(addr, key=EditFav.key)
             location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
-            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
+            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], \
+                    method='reverse', key=EditFav.key)
             args[1] = g.latlng[0] # bad index
             args[2] = g.latlng[1]
         except:
@@ -345,7 +349,15 @@ class EditFav(PgmAbstract):
         EditFav.check_cmd = [EditFav.check_start, EditFav.check_respond, \
                             EditFav.check_textaddr, EditFav.check_correctwrong]
         EditFav.sqlfile = sqlfile
-
+        EditFav.key = ""
+        try:
+            with open('geocoder_key', 'r') as f:
+                EditFav.key = f.read().strip()
+            f.close()
+            assert(len(EditFav.key) != 0)
+        except:
+            print("error in accessing geocoder key")
+            EditFav.bot.sendMessage(user, "Sorry there's problem using geocoder")
 
 #-------------------------------------------------------------------------------
     

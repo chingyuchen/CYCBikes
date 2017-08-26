@@ -129,9 +129,9 @@ class Address(PgmAbstract):
         addr = msg['text']
 
         try:
-            g = geocoder.google(addr)
+            g = geocoder.google(addr, key=Address.key)
             location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
-            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
+            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse', key=Address.key)
             Address.bot.sendMessage(user, 'Search for ' + corres_addr.address)
         except:
             print("Error accessing geocoder")
@@ -246,7 +246,14 @@ class Address(PgmAbstract):
         Address.check_cmd = [Address.check_start, Address.check_respond, \
                             Address.check_options]
         Address.sqlfile = sqlfile
-
+        try:
+            with open('geocoder_key', 'r') as f:
+                Address.key = f.read().strip()
+            f.close()
+            assert(len(Address.key) != 0)
+        except:
+            print("errpr in accessing geocoder key")
+            Address.bot.sendMessage(user, "Sorry there's problem using geocoder")
 
 #-------------------------------------------------------------------------------
     
@@ -259,4 +266,14 @@ class Address(PgmAbstract):
         '''
 
         return Address.statefun[state](user, msg, args)
-        
+       
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    '''
+    For testing
+    '''
+    TOKEN = input("Enter the TOKEN: ")
+    bot = telepot.Bot(TOKEN)
+    tb = telebot.TeleBot(TOKEN)
+    address_class = Address(bot, tb, None)
