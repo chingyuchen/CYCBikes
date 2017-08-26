@@ -213,8 +213,8 @@ class Default(PgmAbstract):
                     location = {'latitude': fav_dict[5], 'longitude': fav_dict[6]}
             
             conn.close()
-            args[1] = location
-            
+        
+        args[1] = location
 
         markup = types.ReplyKeyboardMarkup(row_width=2)
         itembtn1 = types.KeyboardButton('PickUp')
@@ -253,15 +253,22 @@ class Default(PgmAbstract):
         nearest bike station. Send the information of the bike station to the 
         user and return the enum of the end state function.
         '''
-
-        location_s = args[0]
-        location_geo = args[1]
-        posi1 = (location_geo['latitude'], location_geo['longitude'])
         
-        client = citybikes.Client()
-        net, dist = next(iter(client.networks.near(\
-            location_geo['latitude'], location_geo['longitude'])))
-        sts = net.stations.near(location_geo['latitude'], location_geo['longitude'])
+        location_s = args[0]
+        lat = args[1]['latitude']
+        lon = args[1]['longitude']
+        posi1 = (lat, lon)
+        
+        try:
+            client = citybikes.Client()
+            net, dist = next(iter(client.networks.near(lat, lon)))
+            sts = net.stations.near(lat, lon)
+        except:
+            print("Error accessing citybikes information")
+            Default.tb.send_message(user, "Sorry the citybikes network currently"
+                "is not operating. Can't access the bike station information. :(")
+            return [Default.END, None]
+
 
         for stai in sts:
             if msg['text'] == 'PickUp' and stai[0]['free_bikes'] != 0: 
@@ -288,7 +295,7 @@ class Default(PgmAbstract):
                 distS = "{:100.2f}".format(distval)
                 
                 Default.tb.send_message(user, "The station {name} has {count}"\
-                    "empty slots. It is {dist} meters away from {targetloca}."\
+                    " empty slots. It is {dist} meters away from {targetloca}."\
                     .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
                      dist=distS, targetloca=location_s))
                 

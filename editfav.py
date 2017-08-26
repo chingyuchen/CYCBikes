@@ -8,6 +8,7 @@ editfav pgm allows users to edit their favorite locations.
 
 '''
 ################################################################################
+
 import geocoder
 import citybikes
 import sqlite3
@@ -105,18 +106,44 @@ class EditFav(PgmAbstract):
             if fav_dict[1] is not None: # bad index
                 lat = fav_dict[1]
                 lon = fav_dict[2]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav1"] = corres_addr.address
+                
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    favs["fav1"] = corres_addr.address
+                except:
+                    print("error using geocoder")
+                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                        "is not operating. Can't get the information of the "
+                        "address now. :(")
+                    return [EditFav.END, None]
+                
             if fav_dict[3] is not None:
                 lat = fav_dict[3]
                 lon = fav_dict[4]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav2"] = corres_addr.address
+
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    favs["fav2"] = corres_addr.address
+                except:
+                    print("error using geocoder")
+                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                        "is not operating. Can't get the information of the "
+                        "address now. :(")
+                    return [EditFav.END, None]
+                
             if fav_dict[5] is not None:
                 lat = fav_dict[5]
                 lon = fav_dict[6]
-                corres_addr = geocoder.google([lat, lon], method='reverse')
-                favs["fav3"] = corres_addr.address
+                
+                try:
+                    corres_addr = geocoder.google([lat, lon], method='reverse')
+                    favs["fav3"] = corres_addr.address
+                except:
+                    print("error using geocoder")
+                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                        "is not operating. Can't get the information of the "
+                        "address now. :(")
+                    return [EditFav.END, None]
         
         conn.close()
 
@@ -212,11 +239,19 @@ class EditFav(PgmAbstract):
         location = None
         addr = msg['text']
 
-        g = geocoder.google(addr)
-        location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
-        corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
-        args[1] = g.latlng[0] # bad index
-        args[2] = g.latlng[1]
+        try:
+            g = geocoder.google(addr)
+            location = {'latitude': g.latlng[0], 'longitude': g.latlng[1]}
+            corres_addr = geocoder.google([g.latlng[0], g.latlng[1]], method='reverse')
+            args[1] = g.latlng[0] # bad index
+            args[2] = g.latlng[1]
+        except:
+            print("error using geocoder")
+            EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                "is not operating. Can't get the information of the "
+                "address now. :(")
+            return [EditFav.END, None]
+
 
         markup = types.ReplyKeyboardMarkup(row_width=2)
         itembtn1 = types.KeyboardButton('Correct')
