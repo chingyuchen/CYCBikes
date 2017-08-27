@@ -277,12 +277,13 @@ class Default(PgmAbstract):
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
                 distval = vincenty(posi1, posi2).meters
-                distS = "{:100.2f}".format(distval)
-                
+                distS = "{:1.1f}".format(distval)
+                num = stai[0]['free_bikes']
+                emoji = u"\U0001F6B2"*min(10, num)
                 Default.tb.send_message(user, "The station {name} has {count} "\
-                    "free bikes. It is {dist} meters away from {targetloca}."\
-                    .format(name=stai[0]['name'], count=stai[0]['free_bikes'],\
-                     dist=distS, targetloca=location_s))
+                    "free bikes.\n{bikes}\nIt is {dist} meters away from {targetloca}."\
+                    .format(name=stai[0]['name'], count=num,\
+                     dist=distS, targetloca=location_s, bikes=emoji))
                 
                 return [Default.END, None]
          
@@ -292,12 +293,13 @@ class Default(PgmAbstract):
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
                 distval = vincenty(posi1, posi2).meters
-                distS = "{:100.2f}".format(distval)
-                
+                distS = "{:.1f}".format(distval)
+                num = stai[0]['empty_slots']
+                emoji = u"\U0001F17F"*min(10, num)
                 Default.tb.send_message(user, "The station {name} has {count}"\
-                    " empty slots. It is {dist} meters away from {targetloca}."\
+                    " empty slots.\n{slots}\nIt is {dist} meters away from {targetloca}."\
                     .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
-                     dist=distS, targetloca=location_s))
+                     dist=distS, targetloca=location_s, slots=emoji))
                 
                 return [Default.END, None]
 

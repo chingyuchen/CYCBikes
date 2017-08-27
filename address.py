@@ -13,6 +13,7 @@ import abc
 import geocoder
 import telepot   
 import telebot
+from telebot import types
 import citybikes
 from geopy.distance import vincenty
 
@@ -138,10 +139,10 @@ class Address(PgmAbstract):
             Address.tb.send_message(user, "Sorry the geocoder can't find the address :(")
             return [Address.END, None]
 
-        markup = (row_width=2)
-        itembtn1 = telebot.types.KeyboardButton('PickUp')
-        itembtn2 = telebot.types.KeyboardButton('DropOff')
-        itembtn3 = telebot.types.KeyboardButton('WrongAddress')
+        markup = types.ReplyKeyboardMarkup(row_width=1)
+        itembtn1 = types.KeyboardButton('PickUp')
+        itembtn2 = types.KeyboardButton('DropOff')
+        itembtn3 = types.KeyboardButton('WrongAddress')
         markup.add(itembtn1)
         markup.add(itembtn2)
         markup.add(itembtn3)
@@ -197,32 +198,34 @@ class Address(PgmAbstract):
             return [Address.END, None]
 
         for stai in sts:
-            if msg['text'] == 'PickUp' and stai[0]['empty_slots'] != 0: 
+            if msg['text'] == 'DropOff' and stai[0]['empty_slots'] != 0: 
                 Address.tb.send_location(\
                     user, stai[0]['latitude'], stai[0]['longitude'])
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
                 distval = vincenty(posi1, posi2).meters
-                distS = "{:100.2f}".format(distval)
-                
+                distS = "{:.1f}".format(distval)
+                num = stai[0]['empty_slots']
+                emoji = u"\U0001F17F"*min(10, num)     
                 Address.tb.send_message(user, "The station {name} has {count} "\
-                    "empty slots. It is {dist} meters away from the address."\
+                    "empty slots.\n{bikes}\nIt is {dist} meters away from the address."\
                     .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
-                     dist=distS))
+                     dist=distS, bikes=emoji))
                 return [Address.END, None]
          
-            if msg['text'] == 'DropOff' and stai[0]['free_bikes'] != 0: 
+            if msg['text'] == 'PickUp' and stai[0]['free_bikes'] != 0: 
                 Address.tb.send_location(\
                     user, stai[0]['latitude'], stai[0]['longitude'])
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
                 distval = vincenty(posi1, posi2).meters
-                distS = "{:100.2f}".format(distval)
-               
+                distS = "{:.1f}".format(distval)
+                num = stai[0]['free_bikes']
+                emoji = u"\U0001F6B2"*min(10, num)          
                 Address.tb.send_message(user, "The station {name} has {count} "\
-                    "free bikes. It is {dist} meters away from the address."\
+                    "free bikes.\n{slots}\nIt is {dist} meters away from the address."\
                     .format(name=stai[0]['name'], count=stai[0]['free_bikes'],\
-                     dist=distS))
+                     dist=distS, slots=emoji))
                 return [Address.END, None]
 
         Address.tb.send_message(user, "Sorry no available stations.")

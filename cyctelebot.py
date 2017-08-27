@@ -81,11 +81,11 @@ if __name__ == "__main__":
     '''
     The main function initiate a CYCTelebot object and runs it.
     '''
-    TOKEN = ""
+    
     with open('cycbikes_TOKEN', 'r') as f:
         TOKEN = f.read().strip()
     f.close()
-
+    
     testclass = CYCTelebot(TOKEN)
     testclass.run()
     
