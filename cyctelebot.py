@@ -24,6 +24,7 @@ class CYCTelebot:
     commands from the telegram users. The list of commands are in the 
     commandsmap.json.
     '''
+    
 #-------------------------------------------------------------------------------
 
     def __init__(self):
