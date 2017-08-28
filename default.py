@@ -8,6 +8,7 @@ default.py contains Default class, which is a program object of the "/default"
 command. Default pgm provides the bike station information by the given current 
 location or favorite locations from the users.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

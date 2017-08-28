@@ -7,6 +7,7 @@ Description:
 help.py contains Help class, which is a program object of the "/help" command. 
 Help pgm send the commands instruction to the users.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

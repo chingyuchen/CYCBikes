@@ -7,6 +7,7 @@ Description:
 fav.py contains Fav class, which is a program object of the "/fav" command. 
 Fav pgm send the list of the addresses of the user's favorite locations.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

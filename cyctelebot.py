@@ -7,6 +7,7 @@ Description:
 cyctelebot.py contains a CYCTelebot class which is a telegram bot object. The 
 object communicates and executes the commands from the telegram users.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

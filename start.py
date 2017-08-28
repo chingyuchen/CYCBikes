@@ -7,6 +7,7 @@ Description:
 start.py contains Start class, which is a program object of the "/start" command. 
 Start pgm greets to the CYCBikes user.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

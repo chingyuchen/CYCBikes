@@ -7,6 +7,7 @@ Description:
 editfav contains EditFav class, which is a program object of the "/editFav" 
 command. The command allows users to edit their favorite locations.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

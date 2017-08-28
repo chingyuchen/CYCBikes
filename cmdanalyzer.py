@@ -7,6 +7,7 @@ Description:
 cmdanalyzer.py contains a CmdAnalyzer class which is a object that analyzes the 
 commands(messages) received from telegram user and able to execute the commands.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

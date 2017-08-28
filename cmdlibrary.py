@@ -7,6 +7,7 @@ Description: cmdlibrary.py contains a dict that maps the commands to all the
 program classes of a designed telegram-bot. The list of corresponding commands 
 and the name of the classes are in the commandsmap.json. 
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 

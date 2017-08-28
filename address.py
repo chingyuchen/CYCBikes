@@ -7,6 +7,7 @@ Description:
 address.py contains Address class, which is a program object of the "/addr" 
 command. Address pgm allows to search the bikes station with the address.
 
+Copyright (c) 2017 Ching-Yu Chen
 '''
 ################################################################################
 
