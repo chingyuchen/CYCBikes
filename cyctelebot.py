@@ -14,8 +14,6 @@ import telepot
 from telepot.loop import MessageLoop
 from time import sleep
 from cmdanalyzer import *
-import telebot
-from telebot import types
 
 ################################################################################
 
@@ -28,19 +26,28 @@ class CYCTelebot:
     '''
 #-------------------------------------------------------------------------------
 
-    def __init__(self, TOKEN):
+    def __init__(self):
 
-        # The token of the CYCTelebot
-        self.TOKEN = TOKEN;
+        try:
+            TOKEN = ""
+            with open('cycbikes_TOKEN', 'r') as f:
+                TOKEN = f.read().strip()
+            f.close()
+            assert(len(TOKEN) != 0)
+        except:
+            print("Token file doesn't exit or invalid token")
 
-        # The telepot object that receives and send message
-        self.bot = telepot.Bot(TOKEN)
 
-        # The telebot object that create customized keyboards
-        self.tb = telebot.TeleBot(TOKEN)
+        try:
+            # The telepot object that receives and send message
+            self.bot = telepot.Bot(TOKEN)
+            assert(self.bot != None)
+        except:
+            print("problem initializing bot. Token invalid or telepot is not operating")
 
+        
         # The CmdAnalyzer object analyze the received commands
-        self.cmdanalyzeri = CmdAnalyzer(self.bot, self.tb)
+        self.cmdanalyzeri = CmdAnalyzer()
 
 #-------------------------------------------------------------------------------
 
@@ -59,6 +66,7 @@ class CYCTelebot:
             self.bot.sendMessage(chat_id, ' （ˊ＾ˋ ） ') 
             self.bot.sendMessage(chat_id, 'Not a valid command. Please retype '
                 'the command or type /help for command instructions.')
+       
                 
 #-------------------------------------------------------------------------------
 
@@ -72,7 +80,7 @@ class CYCTelebot:
         MessageLoop(self.bot, self.testHandle).run_as_thread()
 
         while True:
-            sleep(1)
+            sleep(3)
 
 ################################################################################
 
@@ -82,10 +90,6 @@ if __name__ == "__main__":
     The main function initiate a CYCTelebot object and runs it.
     '''
     
-    with open('cycbikes_TOKEN', 'r') as f:
-        TOKEN = f.read().strip()
-    f.close()
-    
-    testclass = CYCTelebot(TOKEN)
+    testclass = CYCTelebot()
     testclass.run()
     

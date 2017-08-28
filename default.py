@@ -4,8 +4,9 @@ File: default.py
 Author: Ching-Yu Chen
 
 Description:
-Default pgm provides the bike station information by the given current location
-or favorite locations from the users.
+default.py contains Default class, which is a program object of the "/default" 
+command. Default pgm provides the bike station information by the given current 
+location or favorite locations from the users.
 
 '''
 ################################################################################
@@ -17,59 +18,7 @@ import telepot
 import telebot
 from telebot import types
 from geopy.distance import vincenty
-
-
-################################################################################
-
-class PgmAbstract(object):
-
-    ''' 
-    Abstract class of the pgm of the bot. 
-    '''
-
-    # pgm execute command
-    name = "/default"
-    
-    # object of telepot, sending and receiving messages from telegram users
-    bot = None
-    
-    # object of telepot, shows customized keyboard to telegram users
-    tb = None
-
-    # function list to execute at different state
-    statefun = []
-
-    # list of functions to check valid command at different state
-    check_cmd = []
-
-    __metaclass__ = abc.ABCMeta
-
-    def check_name(self):
-        if self.name is None:
-            raise NotImplementedError('Subclasses must define name')
-
-#-------------------------------------------------------------------------------
- 
-    @staticmethod
-    def check_start(msg=None):
-
-        '''
-        Return true if the msg is a valid command for the start state. 
-        Otherwise, return false. 
-        '''
-        
-        return True
-
-#-------------------------------------------------------------------------------
-
-    @staticmethod
-    def state_request(user, msg=None, args=None):
-        
-        '''
-        The customized (given user) state 0 function for execution. The function
-        will let user able to choose between 'share location', 'favPick' or 
-        'favDrop' from the keyboard.
-        '''
+from pgmabstract import PgmAbstract
 
 ################################################################################
 
@@ -82,40 +31,27 @@ class Default(PgmAbstract):
     '''
 
     name = "/default"
-    bot = None
-    tb = None
+    
+    
+    # enum of the state of the program
 
-    REQUEST = 0
+    START = 0
     RESPOND = 1
     SEARCH = 2
     END = -1
 
-    statefun = []
-    check_cmd = []
-
-    conn = None
-    cur = None
-    sqlfile = None
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_start(msg=None):
-
-        '''
-        Return true if the msg is a valid command for the start state. 
-        Otherwise, return false. 
-        '''
-        
+    def check_start(self, msg=None):
         return True
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_request(user, msg=None, args=None):
+    def state_start(self, user, msg=None, args=None):
         
         '''
-        The request state function, return the enum of the next state function 
+        The start state function, return the enum of the next state function 
         to execute. The function ask user to choose between 'share location', 
         'fav1', 'fav2' or 'fav3' from the customized keyboard. 
         '''
@@ -129,15 +65,14 @@ class Default(PgmAbstract):
         markup.add(itembtn2)
         markup.add(itembtn3)
         markup.add(itembtn4)
-        Default.tb.send_message(user, "Where would you like to search?", \
+        self.tb.send_message(user, "Where would you like to search?", \
             reply_markup=markup)
 
         return [Default.RESPOND, None]
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_respond(msg):
+    def check_respond(self, msg):
 
         '''
         Return true if the respond message for the request state function from 
@@ -158,8 +93,7 @@ class Default(PgmAbstract):
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_respond(user, msg, args=None):
+    def state_respond(self, user, msg, args=None):
 
         '''
         The respond state function. According to the respond from the user, 
@@ -179,14 +113,14 @@ class Default(PgmAbstract):
         else:
             args[0] = "your favorite location"
             
-            conn = sqlite3.connect(Default.sqlfile)
+            conn = sqlite3.connect(self.sqlfile)
             cur = conn.cursor()
             cur.execute('SELECT * FROM Favs WHERE id = ?', (user,))
             fav_dict = cur.fetchone()
             
             if msg['text'] == 'fav1': 
                 if fav_dict is None or fav_dict[1] is None: # bad index
-                    Default.bot.sendMessage(user, 'The 1st favorite location is'
+                    self.bot.sendMessage(user, 'The 1st favorite location is'
                         ' not set yet. Please use /editFav to set')
                     conn.close()
                     return [Default.END, None]
@@ -196,7 +130,7 @@ class Default(PgmAbstract):
             
             elif msg['text'] == 'fav2':
                 if fav_dict is None or fav_dict[3] is None: # bad index
-                    Default.bot.sendMessage(user, 'The 2nd favorite location is'
+                    self.bot.sendMessage(user, 'The 2nd favorite location is'
                         ' not set yet. Please use /editFav to set')
                     conn.close()
                     return [Default.END, None]
@@ -205,7 +139,7 @@ class Default(PgmAbstract):
 
             else:
                 if fav_dict is None or fav_dict[5] is None: # bad index
-                    Default.bot.sendMessage(user, 'The 3rd favorite location is'
+                    self.bot.sendMessage(user, 'The 3rd favorite location is'
                         ' not set yet. Please use /editFav to set')
                     conn.close()
                     return [Default.END, None]
@@ -221,14 +155,13 @@ class Default(PgmAbstract):
         itembtn2 = types.KeyboardButton('DropOff')
         markup.add(itembtn1)
         markup.add(itembtn2)
-        Default.tb.send_message(user, "Pick up or drop off?", reply_markup=markup)
+        self.tb.send_message(user, "Pick up or drop off?", reply_markup=markup)
         
         return [Default.SEARCH, args]
         
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_pickordrop(msg):
+    def check_pickordrop(self, msg):
 
         '''
         Return true if the respond message from the user is either 'PickUp' or
@@ -245,8 +178,7 @@ class Default(PgmAbstract):
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_search(user, msg, args):
+    def state_search(self, user, msg, args):
         
         '''
         The search state function. Use the location in the args to search the 
@@ -265,14 +197,14 @@ class Default(PgmAbstract):
             sts = net.stations.near(lat, lon)
         except:
             print("Error accessing citybikes information")
-            Default.tb.send_message(user, "Sorry the citybikes network currently"
+            self.tb.send_message(user, "Sorry the citybikes network currently"
                 "is not operating. Can't access the bike station information. :(")
             return [Default.END, None]
 
 
         for stai in sts:
             if msg['text'] == 'PickUp' and stai[0]['free_bikes'] != 0: 
-                Default.tb.send_location(user, \
+                self.tb.send_location(user, \
                     stai[0]['latitude'], stai[0]['longitude'])
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
@@ -280,7 +212,7 @@ class Default(PgmAbstract):
                 distS = "{:1.1f}".format(distval)
                 num = stai[0]['free_bikes']
                 emoji = u"\U0001F6B2"*min(10, num)
-                Default.tb.send_message(user, "The station {name} has {count} "\
+                self.tb.send_message(user, "The station {name} has {count} "\
                     "free bikes.\n{bikes}\nIt is {dist} meters away from {targetloca}."\
                     .format(name=stai[0]['name'], count=num,\
                      dist=distS, targetloca=location_s, bikes=emoji))
@@ -288,7 +220,7 @@ class Default(PgmAbstract):
                 return [Default.END, None]
          
             if msg['text'] == 'DropOff' and stai[0]['empty_slots'] != 0: 
-                Default.tb.send_location(user, \
+                self.tb.send_location(user, \
                     stai[0]['latitude'], stai[0]['longitude'])
                 
                 posi2 = (stai[0]['latitude'], stai[0]['longitude'])
@@ -296,47 +228,33 @@ class Default(PgmAbstract):
                 distS = "{:.1f}".format(distval)
                 num = stai[0]['empty_slots']
                 emoji = u"\U0001F17F"*min(10, num)
-                Default.tb.send_message(user, "The station {name} has {count}"\
+                self.tb.send_message(user, "The station {name} has {count}"\
                     " empty slots.\n{slots}\nIt is {dist} meters away from {targetloca}."\
                     .format(name=stai[0]['name'], count=stai[0]['empty_slots'],\
                      dist=distS, targetloca=location_s, slots=emoji))
                 
                 return [Default.END, None]
 
-        Default.tb.send_message(user, "Sorry no available stations.")
+        self.tb.send_message(user, "Sorry no available stations.")
 
         return [Default.END, None]
 
 #-------------------------------------------------------------------------------    
     
-    def __init__(self, bot, tb, sqlfile):
+    def __init__(self):
 
         '''
-        the Default Class is initialized so the command execution will be 
-        operated by the given the bot and the tb object (telepot and telebot 
-        object). The user information is in the given sqlfile.
+        The Default Class is initialized so the command execution will be 
+        operated by the bot and the tb object (telepot and telebot 
+        object) initiated in superclass. Each state corresponding execute 
+        function and check function are specified.
         '''
 
-        Default.bot = bot
-        Default.tb = tb
-        Default.statefun = [Default.state_request, Default.state_respond, \
-                            Default.state_search]
-        Default.check_cmd = [Default.check_start, Default.check_respond, \
-                            Default.check_pickordrop]
-        Default.sqlfile = sqlfile
-
-
-#-------------------------------------------------------------------------------
-    
-    @staticmethod # Should be inherit
-    def run(user, state, msg=None, args=None):
-
-        '''
-        Execute the function of the program at the given state and return the 
-        next state
-        '''
-
-        return Default.statefun[state](user, msg, args)
+        self.statefun = [self.state_start, self.state_respond, \
+                            self.state_search]
+        self.check_cmd = [self.check_start, self.check_respond, \
+                            self.check_pickordrop]
+        super().__init__()
         
 
 ################################################################################
@@ -346,13 +264,6 @@ if __name__ == "__main__":
     ''' 
     For testing
     '''
-    TOKEN = input("Enter the TOKEN: ") 
-    bot = telepot.Bot(TOKEN)
-    tb = telebot.TeleBot(TOKEN)
-
-    sqlfile = None
-    with open('sqlfilename', 'r') as f:
-        sqlfile = f.read()
-    f.close()
-    default_class = Default(bot, tb, sqlfile)
+   
+    default_class = Default()
 

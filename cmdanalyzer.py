@@ -25,20 +25,17 @@ class CmdAnalyzer:
     '''
 #-------------------------------------------------------------------------------
 
-    def __init__(self, bot, tb):
-
-        # the object that send and receive messages
-        self.bot = bot
+    def __init__(self):
 
         # the object that contains the information of the commands and 
         # the corresponding programs.
-        self.commandsclass = CmdLibrary(bot, tb)
+        self.commandsclass = CmdLibrary() #SHOULD BE class object, for multithreading
 
         # the dict that maps the commands to the program 
-        self._command_libarary = self.commandsclass.command_libarary
+        self._command_libarary = self.commandsclass.command_libarary #SHOULD BE STATIC OBJECT
 
         # the dict that maps the user to the current running program state
-        self.user_state = {}
+        self.user_state = {} #SHOULD BE STATIC OBJECT
         
 #-------------------------------------------------------------------------------
 
@@ -130,7 +127,4 @@ if __name__ == "__main__":
     For testing
     '''
 
-    TOKEN = input("Enter the TOKEN: ") 
-    bot = telepot.Bot(TOKEN)
-    tb = telebot.TeleBot(TOKEN)
-    testCmdAnalyzer = CmdAnalyzer(bot, tb)
+    testCmdAnalyzer = CmdAnalyzer()

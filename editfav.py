@@ -4,7 +4,8 @@ File: editfav.py
 Author: Ching-Yu Chen
 
 Description:
-editfav pgm allows users to edit their favorite locations.
+editfav contains EditFav class, which is a program object of the "/editFav" 
+command. The command allows users to edit their favorite locations.
 
 '''
 ################################################################################
@@ -16,36 +17,7 @@ import abc
 import telepot   
 import telebot
 from telebot import types
-
-
-################################################################################
-
-class PgmAbstract(object):
-
-    ''' 
-    Abstract class of the pgm of the bot. 
-    '''
-
-    # pgm execute command
-    name = ""
-    
-    # object of telepot, sending and receiving messages from telegram users
-    bot = None
-    
-    # object of telepot, shows customized keyboard to telegram users
-    tb = None
-
-    # function list to execute at different state
-    statefun = []
-
-    # list of functions to check valid command at different state
-    check_cmd = []
-
-    __metaclass__ = abc.ABCMeta
-
-    def check_name(self):
-        if self.name is None:
-            raise NotImplementedError('Subclasses must define name')
+from pgmabstract import PgmAbstract     
 
 ################################################################################
 
@@ -56,47 +28,45 @@ class EditFav(PgmAbstract):
     '''
 
     name = "/editFav"
-    bot = None
-    tb = None
-
-    REQUEST = 0
+   
+    
+    # enum of the state of the program
+    
+    START = 0
     RESPOND = 1
     SEARCH = 2
     CHECKCORRECT = 3
     END = -1
 
-    statefun = []
-    check_cmd = []
-
-    conn = None
-    cur = None
-    sqlfile = None
+    
+    # geocoder key
+    
+    key = ""
+    try:
+        with open('geocoder_key', 'r') as f:
+            key = f.read().strip()
+        f.close()
+        assert(len(key) != 0)
+    except:
+        print("error in accessing geocoder key")
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_start(msg=None):
-
-        '''
-        Return true if the command is valid for the start state. Otherwise, 
-        return false. 
-        '''
-        
+    def check_start(self, msg=None):
         return True
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_request(user, msg=None, args=None):
+    def state_start(self, user, msg=None, args=None):
         
         '''
-        The request state function. Send user his/her current favorite locations 
+        The start state function. Send user his/her current favorite locations 
         stored in the database. Ask user to choose which one to be edited with a
         customized keyboard 'EditFav1', 'EditFav2' and 'EditFav3'. Return the 
         enum of the respond state function.
         '''
 
-        conn = sqlite3.connect(EditFav.sqlfile)
+        conn = sqlite3.connect(self.sqlfile)
         cur = conn.cursor()
         cur.execute('SELECT * FROM Favs WHERE id = ?', (user,))
         fav_dict = cur.fetchone()
@@ -113,7 +83,7 @@ class EditFav(PgmAbstract):
                     favs["fav1"] = corres_addr.address
                 except:
                     print("error using geocoder")
-                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                    self.tb.send_message(user, "Sorry the geocoder currently "
                         "is not operating. Can't get the information of the "
                         "address now. :(")
                     return [EditFav.END, None]
@@ -128,7 +98,7 @@ class EditFav(PgmAbstract):
                     favs["fav2"] = corres_addr.address
                 except:
                     print("error using geocoder")
-                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                    self.tb.send_message(user, "Sorry the geocoder currently "
                         "is not operating. Can't get the information of the "
                         "address now. :(")
                     return [EditFav.END, None]
@@ -143,7 +113,7 @@ class EditFav(PgmAbstract):
                     favs["fav3"] = corres_addr.address
                 except:
                     print("error using geocoder")
-                    EditFav.tb.send_message(user, "Sorry the geocoder currently "
+                    self.tb.send_message(user, "Sorry the geocoder currently "
                         "is not operating. Can't get the information of the "
                         "address now. :(")
                     return [EditFav.END, None]
@@ -163,14 +133,13 @@ class EditFav(PgmAbstract):
         markup.add(itembtn1)
         markup.add(itembtn2)
         markup.add(itembtn3)
-        EditFav.tb.send_message(user, request_msg, reply_markup=markup)
+        self.tb.send_message(user, request_msg, reply_markup=markup)
 
         return [EditFav.RESPOND, None]
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_respond(msg):
+    def check_respond(self, msg):
 
         '''
         Check if the msg is a valid command for the respond state. Return true 
@@ -190,8 +159,7 @@ class EditFav(PgmAbstract):
 
  #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_respond(user, msg, args=None):
+    def state_respond(self, user, msg, args=None):
 
         '''
         The respond state function. Ask user to type the address. Return the 
@@ -207,14 +175,13 @@ class EditFav(PgmAbstract):
         else: 
             return_args = [3, 0, 0]
 
-        EditFav.bot.sendMessage(user, 'Please enter the address')
+        self.bot.sendMessage(user, 'Please enter the address')
        
         return [EditFav.SEARCH, return_args]
         
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_textaddr(msg):
+    def check_textaddr(self, msg):
 
         '''
         Check function for the address (msg). Return true if is is valid. 
@@ -228,8 +195,7 @@ class EditFav(PgmAbstract):
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_search(user, msg, args):
+    def state_search(self, user, msg, args):
 
         '''
         The search state function. Search the address in msg. Send the 
@@ -251,9 +217,9 @@ class EditFav(PgmAbstract):
             args[2] = g.latlng[1]
         except:
             print("error using geocoder")
-            EditFav.tb.send_message(user, "Sorry the geocoder currently "
-                "is not operating. Can't get the information of the "
-                "address now. :(")
+            self.tb.send_message(user, "Sorry can't find the address or the " 
+                "geocoder currently is not operating. Can't get the information"
+                " of the address now. :(")
             return [EditFav.END, None]
 
 
@@ -263,14 +229,13 @@ class EditFav(PgmAbstract):
         markup.add(itembtn1)
         markup.add(itembtn2)
         reply_msg = "Add address [" + corres_addr.address + "], is it correct?"
-        EditFav.tb.send_message(user, reply_msg, reply_markup=markup)
+        self.tb.send_message(user, reply_msg, reply_markup=markup)
 
         return [EditFav.CHECKCORRECT, args]
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def check_correctwrong(msg):
+    def check_correctwrong(self, msg):
 
         '''
         Check if the command (msg) is valid for check correct state function. 
@@ -286,8 +251,7 @@ class EditFav(PgmAbstract):
 
 #-------------------------------------------------------------------------------
 
-    @staticmethod
-    def state_edit(user, msg, args):
+    def state_edit(self, user, msg, args):
 
         '''
         The edit state function. If the user replied 'wrong', send the user 
@@ -298,11 +262,11 @@ class EditFav(PgmAbstract):
         '''
 
         if msg['text'] == 'Wrong':
-            EditFav.bot.sendMessage(user, 'Please enter the address')
+            self.bot.sendMessage(user, 'Please enter the address')
             return [EditFav.SEARCH, args]
 
         else:
-            conn = sqlite3.connect(EditFav.sqlfile)
+            conn = sqlite3.connect(self.sqlfile)
             cur = conn.cursor()
             
             lat = args[1]
@@ -326,7 +290,7 @@ class EditFav(PgmAbstract):
                 cur.execute('UPDATE Favs SET fav3lati = ? WHERE id = ?', (lat, user))
                 cur.execute('UPDATE Favs SET fav3lon = ? WHERE id = ?', (lon, user))
             conn.commit()
-            EditFav.bot.sendMessage(user, 'Finished edit!')
+            self.bot.sendMessage(user, 'Finished edit!')
 
             conn.close()
 
@@ -334,42 +298,21 @@ class EditFav(PgmAbstract):
 
 #-------------------------------------------------------------------------------    
     
-    def __init__(self, bot, tb, sqlfile):
+    def __init__(self):
 
         '''
         The EditFav Class is initialized so the command execution will be 
-        operated by the given the bot and the tb object (telepot and telebot 
-        object). The user information is in the sqlfile.
+        operated by the bot and the tb object (telepot and telebot 
+        object) initiated in superclass. Each state corresponding execute 
+        function and check function are specified.
         '''
 
-        EditFav.bot = bot
-        EditFav.tb = tb
-        EditFav.statefun = [EditFav.state_request, EditFav.state_respond, \
-                            EditFav.state_search, EditFav.state_edit]
-        EditFav.check_cmd = [EditFav.check_start, EditFav.check_respond, \
-                            EditFav.check_textaddr, EditFav.check_correctwrong]
-        EditFav.sqlfile = sqlfile
-        EditFav.key = ""
-        try:
-            with open('geocoder_key', 'r') as f:
-                EditFav.key = f.read().strip()
-            f.close()
-            assert(len(EditFav.key) != 0)
-        except:
-            print("error in accessing geocoder key")
-            EditFav.bot.sendMessage(user, "Sorry there's problem using geocoder")
+        self.statefun = [self.state_start, self.state_respond, \
+                            self.state_search, self.state_edit]
+        self.check_cmd = [self.check_start, self.check_respond, \
+                            self.check_textaddr, self.check_correctwrong]
 
-#-------------------------------------------------------------------------------
-    
-    @staticmethod # Should be inherit
-    def run(user, state, msg=None, args=None):
-
-        '''
-        Execute the function of the program at the given state and return the 
-        next state
-        '''
-
-        return EditFav.statefun[state](user, msg, args)
+        super().__init__()
         
 
 ################################################################################
@@ -378,13 +321,7 @@ if __name__ == "__main__":
     
     ''' for testing
     '''
-    TOKEN = input("Enter the TOKEN: ") 
-    bot = telepot.Bot(TOKEN)
-    tb = telebot.TeleBot(TOKEN)
-
-    sqlfile = None
-    with open('sqlfilename', 'r') as f:
-        sqlfile = f.read()
-    f.close()
-    editFav_class = EditFav(bot, tb, sqlfile)
-
+    
+    editFav_class = EditFav()
+    print(editFav_class.key)
+    print(EditFav.key)
