@@ -6,7 +6,7 @@ information of the world-wide bike-share system. The bot is currently running on
 telegram (@cycbikes_bot).
 
 ## Installation
-pip3 install git+https://github.com/chingyuchen/CYCTelebot.git
+`pip3 install git+https://github.com/chingyuchen/CYCTelebot.git`
 
 ## Usage
 
@@ -14,14 +14,16 @@ pip3 install git+https://github.com/chingyuchen/CYCTelebot.git
 Simply add (@cycbikes_bot) as friend on telegram and start the chat.
 
 ### Run on your own bot
-To run the cyctelebot on your own telegram (i.e. let your own bot provides the 
+To run the cyctelebot on your own telegram bot (i.e. let your own bot provides the 
 bike-share information service), you need to: 
 
 1. download all the files in CYCTelebot. 
 2. Create file cycbikes_TOKEN in the same directory and write the token of your 
 own bot in the file.
-3. use python3 to execute cyctelebot.py
-`python3 cyctelebot.py` or `./cyctelebot.py` or `./cycbikes`
+3. use python3 to execute cyctelebot.py in the same directory or directly execute 
+cycbikes      
+```python3 cyctelebot.py```     
+```./cycbikes```
 
 Then your bot can start to look for bike-share information for the users!
 
