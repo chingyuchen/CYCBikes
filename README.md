@@ -1,12 +1,12 @@
-# CYCTelebot
+# CYCBikes
 
 ## About
-CYCTelebot is a telegram bot project in python3. The bot provides the real-time 
+CYCBikes is a telegram bot project in python3. The bot provides the real-time 
 information of the world-wide bike-share system. The bot is currently running on 
 telegram (@cycbikes_bot).
 
 ## Installation
-`pip3 install git+https://github.com/chingyuchen/CYCTelebot.git`
+`pip3 install git+https://github.com/chingyuchen/CYCBikes`
 
 ## Usage
 
@@ -22,7 +22,7 @@ bike-share information service), you need to:
 own bot in the file.
 3. use python3 to execute cyctelebot.py in the same directory or directly execute 
 cycbikes      
-```python3 cyctelebot.py```     
+```python3 cyctelebot.py```     or       
 ```./cycbikes```
 
 Then your bot can start to look for bike-share information for the users!
