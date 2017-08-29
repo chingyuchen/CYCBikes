@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ################################################################################
 '''
 File: cyctelebot.py
@@ -53,7 +54,7 @@ class CYCTelebot:
 
 #-------------------------------------------------------------------------------
 
-    def testHandle(self, msg):
+    def handle(self, msg):
         
         ''' 
         Handle the received msg. If the msg is a command than execute the 
@@ -79,7 +80,7 @@ class CYCTelebot:
         the telegram users.
         '''
 
-        MessageLoop(self.bot, self.testHandle).run_as_thread()
+        MessageLoop(self.bot, self.handle).run_as_thread()
 
         while True:
             sleep(3)
